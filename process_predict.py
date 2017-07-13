@@ -6,7 +6,6 @@ from keras.wrappers.scikit_learn import KerasRegressor
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras import backend as backend
 from sklearn import preprocessing
-# from sklearn.decomposition import PCA, FastICA
 import os
 
 
@@ -52,12 +51,6 @@ def new_model():
     model.add(Activation('linear'))
     model.add(BatchNormalization())
     model.add(Dropout(0.2))
-    # model.add(Dense(94, kernel_initializer='normal', kernel_constraint=maxnorm(5), activation='tanh'))
-    # model.add(BatchNormalization())
-    # model.add(Dropout(0.2))
-    # model.add(Dense(47, kernel_initializer='normal', kernel_constraint=maxnorm(5), activation='tanh'))
-    # model.add(BatchNormalization())
-    # model.add(Dropout(0.2))
     model.add(Dense(94, kernel_initializer='normal', activation='tanh'))
     model.add(Dense(1, kernel_initializer='normal', activation='linear'))
     model.compile(loss='mean_squared_error', optimizer='adam', metrics=[r2])
@@ -67,16 +60,6 @@ def new_model():
 
 def main():
     df = pd.read_csv('train.csv', header=None, dtype=object)
-
-    # tmplst = []
-    # tmplst.append(df.as_matrix()[0:1,:][0])
-    # for x in df.as_matrix()[1:, ]:
-    #     if float(x[1]) < 160:
-    #         tmplst.append(x)
-    # df = pd.DataFrame(tmplst)
-    # df.to_csv('tmp.csv', index=False, header=False)
-    # df = pd.read_csv('tmp.csv', header=None, dtype=object)
-
     train_data = df.as_matrix()[1:, 2:]
     train_label = df.as_matrix()[1:, 1:2]
     print(train_data.shape)
@@ -85,7 +68,6 @@ def main():
     eval_numbers = df.as_matrix()[1:, 0:1]
     eval_data = df.as_matrix()[1:, 1:]
     print(eval_data.shape)
-
     # Process data from csv
     # print(train_data)
     for x in range(0, train_data.shape[1]):
@@ -107,62 +89,11 @@ def main():
             check_label.append(train_label[x])
     check_data = np.array(check_data)
     check_label = np.array(check_label)
-
     # Normalize data
     scaler = preprocessing.MinMaxScaler()
     scaler.fit(np.concatenate((train_data, eval_data)))
     train_data = scaler.transform(train_data)
     eval_data = scaler.transform(eval_data)
-
-    # pca = PCA(n_components=20, random_state=7)
-    # pca_train = pca.fit_transform(train_data)
-    # pca_eval = pca.transform(eval_data)
-    # pca_check = pca.transform(check_data)
-    # ica = FastICA(n_components=20, random_state=7)
-    # ica_train = ica.fit_transform(pca_train)
-    # ica_eval = ica.transform(pca_eval)
-    # ica_check = ica.transform(pca_check)
-    # print(pca_train)
-    # print(pca_eval)
-    # print(pca_check)
-    # print(pca_train.shape)
-    # print(pca_eval.shape)
-    # print(pca_check.shape)
-    # print(ica_train.shape)
-    # print(ica_eval.shape)
-    # print(ica_eval.shape)
-    # train_data = ica_train
-    # eval_data = ica_eval
-    # check_data = ica_check
-
-    # print(train_data)
-    # print(eval_data)
-
-    # # Build a Model
-    # model = Sequential()
-    # model.add(Dense(input_dim=376, units=1000, kernel_initializer='normal', activation='relu'))
-    # # model.add(Activation('relu'))
-    # model.add(Dense(input_dim=1000, units=500, kernel_initializer='normal', activation='relu'))
-    # # model.add(Activation('relu'))
-    # model.add(Dense(input_dim=500, units=1, kernel_initializer='normal'))
-    # # model.add(Activation('relu'))
-    # model.compile(loss='mean_squared_error', optimizer='adam')
-    # model.fit(train_data, train_label, batch_size=5, epochs=100, verbose=2, validation_data=(check_data, check_label))
-    # predict_list = model.predict(eval_data, batch_size=5)
-
-    # # Store values into a csv file
-    # final_list = list()
-    # final_list.append(['ID', 'y'])
-    # for x in range(eval_numbers.shape[0]):
-    #     temp = list()
-    #     temp.append(eval_numbers[x][0])
-    #     temp.append(str(predict_list[x][0]))
-    #     final_list.append(temp)
-    #     # print(eval_numbers[x][0], predict_list[x][0])
-    # print(final_list)
-    # df = pd.DataFrame(final_list)
-    # df.to_csv('output.csv', index=False, header=False)
-
     # New approach
     estimators = KerasRegressor(build_fn=new_model, epochs=300, batch_size=20, verbose=1,
                                 validation_data=(check_data, check_label))
@@ -173,7 +104,6 @@ def main():
         estimators = load_model(model_path, custom_objects={'r2': r2})
     predict_list = estimators.predict(eval_data, batch_size=5)
     # print(predict_list)
-
     # Store values into a csv file
     final_list = list()
     final_list.append(['ID', 'y'])
